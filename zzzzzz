@@ -1,0 +1,429 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local Player = Players.LocalPlayer
+
+-- ====================== SYSTÈME ID ======================
+local AllowedIDs = {
+    10379860217,   -- ← Mets ton UserId ici
+    9220788049,9221990104,0   -- Ajoute les autres IDs autorisés
+    -- Exemple : 548932145,
+}
+
+local function IsWhitelisted()
+    for _, id in ipairs(AllowedIDs) do
+        if id == Player.UserId then
+            return true
+        end
+    end
+    return false
+end
+
+-- === INTERFACE ===
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "anouar777x_KING"
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0.4, 0, 0.65, 0)
+MainFrame.Position = UDim2.new(0.3, 0, 0.18, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+
+local ProtectedLabel = Instance.new("TextLabel", MainFrame)
+ProtectedLabel.Size = UDim2.new(0.8, 0, 0.08, 0)
+ProtectedLabel.Position = UDim2.new(0.1, 0, 0.02, 0)
+ProtectedLabel.BackgroundTransparency = 1
+ProtectedLabel.Text = "Protégés : 0 joueurs | ID: " .. Player.UserId
+ProtectedLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+ProtectedLabel.TextScaled = true
+ProtectedLabel.Font = Enum.Font.SourceSansBold
+
+local MainDrag = Instance.new("Frame", MainFrame)
+MainDrag.Size = UDim2.new(1,0,0.1,0)
+MainDrag.BackgroundTransparency = 1
+
+local ToggleButton = Instance.new("TextButton", ScreenGui)
+ToggleButton.Size = UDim2.new(0, 120, 0, 50)
+ToggleButton.Position = UDim2.new(0.88, 0, 0.05, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+ToggleButton.Text = "Open"
+ToggleButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+ToggleButton.TextScaled = true
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 8)
+
+local ToggleDrag = Instance.new("Frame", ToggleButton)
+ToggleDrag.Size = UDim2.new(1,0,1,0)
+ToggleDrag.BackgroundTransparency = 1
+
+-- Boutons du menu
+local ESPToggle = Instance.new("TextButton", MainFrame)
+ESPToggle.Size = UDim2.new(0.8,0,0.12,0)
+ESPToggle.Position = UDim2.new(0.1,0,0.12,0)
+ESPToggle.BackgroundColor3 = Color3.fromRGB(255,0,0)
+ESPToggle.Text = "ESP: OFF"
+ESPToggle.TextScaled = true
+Instance.new("UICorner", ESPToggle).CornerRadius = UDim.new(0,8)
+
+local AimbotToggle = Instance.new("TextButton", MainFrame)
+AimbotToggle.Size = UDim2.new(0.8,0,0.12,0)
+AimbotToggle.Position = UDim2.new(0.1,0,0.26,0)
+AimbotToggle.BackgroundColor3 = Color3.fromRGB(255,0,0)
+AimbotToggle.Text = "Aimbot: OFF"
+AimbotToggle.TextScaled = true
+Instance.new("UICorner", AimbotToggle).CornerRadius = UDim.new(0,8)
+
+local FOVSlider = Instance.new("TextBox", MainFrame)
+FOVSlider.Size = UDim2.new(0.8,0,0.12,0)
+FOVSlider.Position = UDim2.new(0.1,0,0.40,0)
+FOVSlider.BackgroundColor3 = Color3.fromRGB(50,50,50)
+FOVSlider.Text = "FOV: 110"
+FOVSlider.TextColor3 = Color3.fromRGB(255,0,0)
+FOVSlider.TextScaled = true
+Instance.new("UICorner", FOVSlider).CornerRadius = UDim.new(0,8)
+
+local AimPartLabel = Instance.new("TextLabel", MainFrame)
+AimPartLabel.Size = UDim2.new(0.8,0,0.12,0)
+AimPartLabel.Position = UDim2.new(0.1,0,0.54,0)
+AimPartLabel.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+AimPartLabel.Text = "Aim Part: Sous les Pieds (fixé)"
+AimPartLabel.TextScaled = true
+AimPartLabel.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", AimPartLabel).CornerRadius = UDim.new(0,8)
+
+local WallcheckToggle = Instance.new("TextButton", MainFrame)
+WallcheckToggle.Size = UDim2.new(0.8,0,0.12,0)
+WallcheckToggle.Position = UDim2.new(0.1,0,0.68,0)
+WallcheckToggle.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+WallcheckToggle.Text = "Wallcheck: ON"
+WallcheckToggle.TextScaled = true
+WallcheckToggle.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", WallcheckToggle).CornerRadius = UDim.new(0,8)
+
+local PlayerListFrame = Instance.new("ScrollingFrame", MainFrame)
+PlayerListFrame.Size = UDim2.new(0.8, 0, 0.25, 0)
+PlayerListFrame.Position = UDim2.new(0.1, 0, 0.82, 0)
+PlayerListFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+PlayerListFrame.BorderSizePixel = 0
+PlayerListFrame.ScrollBarThickness = 6
+PlayerListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Instance.new("UICorner", PlayerListFrame).CornerRadius = UDim.new(0, 8)
+
+local PlayerListLayout = Instance.new("UIListLayout", PlayerListFrame)
+PlayerListLayout.Padding = UDim.new(0, 4)
+
+-- Variables
+local espEnabled = false
+local AimbotOn = false
+local FOVRadius = 110
+local WallCheckEnabled = true
+local ProtectedPlayers = {}
+local PlayerButtons = {}
+local AIM_SMOOTHNESS = 1
+local PREDICTION_FACTOR = 0.25
+
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Radius = FOVRadius
+FOVCircle.Thickness = 2
+FOVCircle.Color = Color3.fromRGB(255,0,0)
+FOVCircle.Transparency = 0.6
+FOVCircle.Filled = false
+FOVCircle.Visible = false
+
+local FEET_OFFSET = Vector3.new(0, -3.7, 0)
+
+-- === FONCTIONS UTILITAIRES ===
+local function IsAlive(character)
+    local hum = character and character:FindFirstChildOfClass("Humanoid")
+    return hum and hum.Health > 0
+end
+
+local function IsVisible(targetPos)
+    local origin = Camera.CFrame.Position
+    local direction = (targetPos - origin)
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Blacklist
+    params.FilterDescendantsInstances = {Player.Character or workspace}
+    local result = workspace:Raycast(origin, direction, params)
+    return result == nil
+end
+
+-- === ESP ===
+local function removeESP(char)
+    if not char then return end
+    local head = char:FindFirstChild("Head")
+    if head then
+        local bill = head:FindFirstChild("AnouarNameHP")
+        if bill then bill:Destroy() end
+    end
+    local hl = char:FindFirstChild("AnouarHighlight")
+    if hl then hl:Destroy() end
+end
+
+local function applyESP(char)
+    if not char then return end
+    local plr = Players:GetPlayerFromCharacter(char)
+    if not plr or plr == Player then return end
+
+    removeESP(char)
+    local head = char:FindFirstChild("Head")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not head or not hum or not IsAlive(char) then return end
+
+    local bill = Instance.new("BillboardGui")
+    bill.Name = "AnouarNameHP"
+    bill.Adornee = head
+    bill.Size = UDim2.new(0, 160, 0, 35)
+    bill.StudsOffset = Vector3.new(0, 2.8, 0)
+    bill.AlwaysOnTop = true
+    bill.Parent = head
+
+    local nameLabel = Instance.new("TextLabel", bill)
+    nameLabel.Size = UDim2.new(1,0,0,16)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = plr.DisplayName ~= plr.Name and (plr.DisplayName.." (@ "..plr.Name..")") or plr.Name
+    nameLabel.TextColor3 = Color3.new(1,1,1)
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.Font = Enum.Font.SourceSansBold
+    nameLabel.TextSize = 14
+
+    local hpBg = Instance.new("Frame", bill)
+    hpBg.Size = UDim2.new(1,-6,0,5)
+    hpBg.Position = UDim2.new(0,3,0,16)
+    hpBg.BackgroundColor3 = Color3.new(0,0,0)
+    Instance.new("UICorner", hpBg).CornerRadius = UDim.new(0,3)
+
+    local hpFill = Instance.new("Frame", hpBg)
+    hpFill.Size = UDim2.new(1,0,1,0)
+    hpFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    Instance.new("UICorner", hpFill).CornerRadius = UDim.new(0,3)
+
+    local hpText = Instance.new("TextLabel", hpBg)
+    hpText.Size = UDim2.new(1,0,1,0)
+    hpText.BackgroundTransparency = 1
+    hpText.TextColor3 = Color3.new(1,1,1)
+    hpText.TextStrokeTransparency = 0
+    hpText.TextSize = 8
+
+    local function updateHP()
+        if hum and hum.Parent and IsAlive(char) then
+            local ratio = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+            hpFill.Size = UDim2.new(ratio, 0, 1, 0)
+            hpText.Text = math.floor(hum.Health) .. "/" .. hum.MaxHealth
+        else
+            removeESP(char)
+        end
+    end
+    hum.HealthChanged:Connect(updateHP)
+    hum.Died:Connect(function() removeESP(char) end)
+    updateHP()
+
+    local hl = Instance.new("Highlight")
+    hl.Name = "AnouarHighlight"
+    hl.OutlineColor = Color3.fromRGB(255,255,0)
+    hl.OutlineTransparency = 0
+    hl.FillTransparency = 1
+    hl.Parent = char
+end
+
+local function onCharacterAdded(char)
+    local plr = Players:GetPlayerFromCharacter(char)
+    if not plr or plr == Player then return end
+    task.spawn(function()
+        task.wait(0.5)
+        if espEnabled then applyESP(char) end
+    end)
+end
+
+local function setupPlayer(plr)
+    if plr == Player then return end
+    plr.CharacterAdded:Connect(onCharacterAdded)
+    if plr.Character then onCharacterAdded(plr.Character) end
+end
+
+for _, p in ipairs(Players:GetPlayers()) do setupPlayer(p) end
+Players.PlayerAdded:Connect(setupPlayer)
+
+RunService.Heartbeat:Connect(function()
+    if espEnabled then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= Player and plr.Character then
+                local head = plr.Character:FindFirstChild("Head")
+                if head and not head:FindFirstChild("AnouarNameHP") then
+                    applyESP(plr.Character)
+                end
+            end
+        end
+    end
+end)
+
+ESPToggle.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    ESPToggle.Text = "ESP: "..(espEnabled and "ON" or "OFF")
+    ESPToggle.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= Player and plr.Character then
+            if espEnabled then 
+                applyESP(plr.Character) 
+            else 
+                removeESP(plr.Character) 
+            end
+        end
+    end
+end)
+
+-- === LISTE PROTÉGER AMIS ===
+local function UpdatePlayerList()
+    for _, btn in pairs(PlayerButtons) do btn:Destroy() end
+    PlayerButtons = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= Player then
+            local btn = Instance.new("TextButton", PlayerListFrame)
+            btn.Size = UDim2.new(1, -10, 0, 30)
+            local isProtected = ProtectedPlayers[plr] == true
+            btn.BackgroundColor3 = isProtected and Color3.fromRGB(0, 100, 255) or Color3.fromRGB(60, 60, 60)
+            btn.Text = plr.DisplayName .. " (@" .. plr.Name .. ")" .. (isProtected and " ✔" or "")
+            btn.TextColor3 = Color3.new(1,1,1)
+            btn.TextScaled = true
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+            table.insert(PlayerButtons, btn)
+            
+            btn.MouseButton1Click:Connect(function()
+                ProtectedPlayers[plr] = not ProtectedPlayers[plr]
+                UpdatePlayerList()
+            end)
+        end
+    end
+    
+    local count = 0
+    for _ in pairs(ProtectedPlayers) do count += 1 end
+    ProtectedLabel.Text = "Protégés : " .. count .. " joueurs | ID: " .. Player.UserId
+end
+
+Players.PlayerAdded:Connect(UpdatePlayerList)
+Players.PlayerRemoving:Connect(UpdatePlayerList)
+UpdatePlayerList()
+
+-- === AIMBOT + PREDICTION ===
+local function GetAimPosition(character)
+    local root = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("LowerTorso") or character:FindFirstChild("Torso")
+    
+    if not root then
+        local foot = character:FindFirstChild("LeftFoot") or character:FindFirstChild("RightFoot")
+        if foot then return foot.Position + Vector3.new(0, -1.5, 0) end
+        return nil
+    end
+    
+    local predictedPos = root.Position + (root.Velocity * PREDICTION_FACTOR)
+    return predictedPos + FEET_OFFSET
+end
+
+local function GetClosestPlayer()
+    local closest, shortest = nil, math.huge
+    
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= Player and not ProtectedPlayers[plr] and plr.Character and IsAlive(plr.Character) then
+            local aimPos = GetAimPosition(plr.Character)
+            if aimPos then
+                local pos, onScreen = Camera:WorldToViewportPoint(aimPos)
+                if onScreen then
+                    local dist = (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude
+                    if dist < shortest and dist <= FOVRadius then
+                        if not WallCheckEnabled or IsVisible(aimPos) then
+                            shortest = dist
+                            closest = plr
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    FOVCircle.Position = Camera.ViewportSize / 2
+    FOVCircle.Radius = FOVRadius
+    FOVCircle.Visible = AimbotOn
+
+    if AimbotOn then
+        local target = GetClosestPlayer()
+        if target and target.Character then
+            local targetPos = GetAimPosition(target.Character)
+            if targetPos then
+                local targetCFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+                Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, AIM_SMOOTHNESS)
+            end
+        end
+    end
+end)
+
+-- === CONTROLES ===
+AimbotToggle.MouseButton1Click:Connect(function()
+    AimbotOn = not AimbotOn
+    AimbotToggle.Text = "Aimbot: "..(AimbotOn and "ON" or "OFF")
+    AimbotToggle.BackgroundColor3 = AimbotOn and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+end)
+
+WallcheckToggle.MouseButton1Click:Connect(function()
+    WallCheckEnabled = not WallCheckEnabled
+    WallcheckToggle.Text = "Wallcheck: " .. (WallCheckEnabled and "ON" or "OFF")
+    WallcheckToggle.BackgroundColor3 = WallCheckEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 100, 100)
+end)
+
+FOVSlider.FocusLost:Connect(function(enter)
+    if enter then
+        local n = tonumber(FOVSlider.Text:match("%d+"))
+        if n and n >= 20 and n <= 800 then
+            FOVRadius = n
+            FOVCircle.Radius = n
+            FOVSlider.Text = "FOV: "..n
+        else
+            FOVSlider.Text = "FOV: "..FOVRadius
+        end
+    end
+end)
+
+-- Toggle principal (avec vérification ID silencieuse)
+local open = false
+ToggleButton.MouseButton1Click:Connect(function()
+    if not IsWhitelisted() then
+        return  -- Rien ne se passe si l'ID n'est pas autorisé
+    end
+
+    open = not open
+    MainFrame.Visible = open
+    ToggleButton.Text = open and "Close" or "Open"
+    if open then UpdatePlayerList() end
+end)
+
+-- Drag functionality
+local function makeDraggable(gui, drag)
+    local dragging, startPos, startInput
+    drag.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            startPos = gui.Position
+            startInput = i.Position
+        end
+    end)
+    drag.InputChanged:Connect(function(i)
+        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = i.Position - startInput
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+makeDraggable(MainFrame, MainDrag)
+makeDraggable(ToggleButton, ToggleDrag)
